@@ -79,13 +79,11 @@ void ParticleSpring::updateForce(Particle* particle, real duration)
     force -= other->getPosition();
 
     // Calculate the magnitude of the force
-    real magnitude = force.magnitude();
-    magnitude = real_abs(magnitude - restLength);
-    magnitude *= springConstant;
+    real magnitude = springConstant * (restLength - force.magnitude());
 
     // Calculate the final force and apply it
     force.normalise();
-    force *= -magnitude;
+    force *= magnitude;
     particle->addForce(force);
 }
 
@@ -102,14 +100,14 @@ waterHeight(waterHeight), liquidDensity(liquidDensity)
 void ParticleBuoyancy::updateForce(Particle* particle, real duration)
 {
     // Calculate the submersion depth
-    real depth = particle->getPosition().y;
+    real height = particle->getPosition().y;
 
     // Check if we're out of the water
-    if (depth >= waterHeight + maxDepth) return;
+    if (height >= waterHeight + maxDepth) return;
     Vector3 force(0,0,0);
 
     // Check if we're at maximum depth
-    if (depth <= waterHeight - maxDepth)
+    if (height <= waterHeight - maxDepth)
     {
         force.y = liquidDensity * volume;
         particle->addForce(force);
@@ -118,7 +116,7 @@ void ParticleBuoyancy::updateForce(Particle* particle, real duration)
 
     // Otherwise we are partly submerged
     force.y = liquidDensity * volume *
-        (depth - maxDepth - waterHeight) / 2 * maxDepth;
+        (waterHeight - height + maxDepth) / 2 * maxDepth;
     particle->addForce(force);
 }
 
@@ -143,7 +141,7 @@ void ParticleBungee::updateForce(Particle* particle, real duration)
 
     // Calculate the final force and apply it
     force.normalise();
-    force *= -magnitude;
+    force *= magnitude;
     particle->addForce(force);
 }
 
